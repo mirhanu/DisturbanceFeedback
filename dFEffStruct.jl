@@ -1,11 +1,4 @@
-using JuMP
-using Ipopt
-using(LinearAlgebra)
-using SparseArrays
-using Plots
-using OSQP
-using Distributions
-using Base.Threads
+#Computationally efficient implementation of the disturbance feedback method
 
  mutable struct DFController
     #Struct properties

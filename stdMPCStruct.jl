@@ -1,3 +1,5 @@
+ #Nominal MPC implementation
+
  mutable struct mpcController
     #Struct properties
     A::Matrix{Float64}

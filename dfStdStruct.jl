@@ -1,3 +1,5 @@
+#The standart implementation of the disturbance feedback method
+
 mutable struct DFStdController
     A::Matrix{Float64}
     B1::Matrix{Float64}
