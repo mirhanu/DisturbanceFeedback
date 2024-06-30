@@ -1,5 +1,11 @@
 #Computationally efficient implementation of the disturbance feedback method
 
+using JuMP
+using Ipopt
+using LinearAlgebra
+using SparseArrays
+using OSQP
+
  mutable struct DFController
     #Struct properties
     A::Matrix{Float64}

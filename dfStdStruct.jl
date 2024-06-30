@@ -1,5 +1,11 @@
 #The standart implementation of the disturbance feedback method
 
+using JuMP
+using Ipopt
+using LinearAlgebra
+using SparseArrays
+using OSQP
+
 mutable struct DFStdController
     A::Matrix{Float64}
     B1::Matrix{Float64}

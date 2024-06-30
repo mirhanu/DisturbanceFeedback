@@ -1,3 +1,6 @@
+
+using LinearAlgebra
+
 function get_ExInpinHorizon(N,t,ExInp)
     ds=size(ExInp,1);
     ExInpinHorizon=zeros(ds,N);
@@ -19,17 +22,11 @@ function calc_cost(states,inps,costParams)
     return cost;
 end
 
-function sigmoid(z)
-    return 1.0 ./ (1.0 .+ exp.(-z))
-end
 
- mutable struct WDNCostParams
+mutable struct WDNCostParams
     sysC
     sysD
     elecPrice
     reservoirPressures
     t
 end
-# costParam.t=0;
-# a=calc_cost2(s,v,costParam)
-# b=calc_cost2(s2,v2,costParam)
