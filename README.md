@@ -5,9 +5,9 @@ with constraints__ (available [here](https://link.springer.com/article/10.1007/s
 ## Abstract
 
 ## Files
--`dfStdStruct.jl`: The standard implementation of the presented robust controller__ 
--`dFEffStruct.jl`: The computationally efficient implementation of the presented robust controller__
--`dfEFFmain.jl`: An example usage of the presented methods in a receding horizon fashion__
+-`dfStdStruct.jl`: The standard implementation of the presented robust controller <br /> 
+-`dFEffStruct.jl`: The computationally efficient implementation of the presented robust controller <br />
+-`dfEFFmain.jl`: An example usage of the presented methods in a receding horizon fashion <br />
 -`parameters.jl`: Parameters for the Water Distribution Network in the paper.
 
 
