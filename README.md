@@ -1,6 +1,7 @@
 # Detecting 3D Hand Pointing Direction from RGB-D Data in Wide-Ranging HRI Scenarios
 
-This repository contains data and codes for the paper __Stochastic Control and Pricing for Natural Gas Networks__ by Vladimir Dvorkin, Anubhav Ratha, Pierre Pinson, and Jalal Kazempour. The paper is available on [arXiv](https://arxiv.org/abs/2010.03283). If you use this code or parts of it, please cite the paper.
+This repository contains data and codes for the paper __Efficient robust optimization for robust control
+with constraints__. The paper is available [here](https://link.springer.com/article/10.1007/s10107-007-0096-6). If you use this code or parts of it, please cite the paper.
 
 ## Abstract
 
