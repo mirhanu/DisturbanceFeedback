@@ -9,10 +9,9 @@ The method in this repository is an extension of the robust optimization method 
 ### System Model
 
 The robust control method is designed for systems that can be described by the following state-space model:
-'''
-math
+```math
 \[ h_{i+1} = Ah_i + B_{1}u_i + B_{2}d_i + w_i \]
-'''
+```
 where:
 - \( h_i \) is the state vector at time step \( i \).
 - \( A \) is the state transition matrix.
