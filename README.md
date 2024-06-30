@@ -13,7 +13,7 @@ The robust control method is designed for systems that can be described by the f
  h_{i+1} = Ah_i + B_{1}u_i + B_{2}d_i + w_i 
 ```
 where:
--  ```math h_i ```  is the state vector at time step  i.
+-   $`h_i `$  is the state vector at time step  i.
 -  ```math A  ``` is the state transition matrix.
 -  ```math u_i ``` is the control input vector at time step  i.
 -  ```math B_1 ``` and  B_2  are input matrices.
