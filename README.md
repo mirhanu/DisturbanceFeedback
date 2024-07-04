@@ -1,6 +1,6 @@
 # A Robust Predictive Control Method  for Pump Scheduling in Water Distribution Networks
 
-This repository contains the code accompanying the paper **""**. The robust control method implemented here is based on the computationally efficient robust optimization technique presented in the paper ["Efficient robust optimization for robust control with constraints"](https://link.springer.com/article/10.1007/s10107-007-0096-6).
+This repository contains the code accompanying the paper **" A Robust Predictive Control Method  for Pump Scheduling in Water Distribution Networks"**. The robust control method implemented here is based on the computationally efficient robust optimization technique presented in the paper ["Efficient robust optimization for robust control with constraints"](https://link.springer.com/article/10.1007/s10107-007-0096-6).
 
 ## Overview
 
