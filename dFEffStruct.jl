@@ -324,7 +324,7 @@ end
       k=Int.(floor((p-1)/l));
       if k<N-1
           input_inds=(start_ind:start_ind+m-1)';
-          input_inds=kron(ones(1,N-1-k),input_inds)+kron((0:m+n+s:(N-2-k)*(m+n+s))',ones(1,n));
+          input_inds=kron(ones(1,N-1-k),input_inds)+kron((0:m+n+s:(N-2-k)*(m+n+s))',ones(1,m));
           bigU[(k+1)*m+1:m*N,p]=x[Int.(input_inds)];
       end
       start_ind=start_ind+(N-1-k)*(m+s+n)+r;
@@ -388,7 +388,7 @@ end
   state_inds=(m+1:m+n)';
   state_inds=kron(ones(1,N),state_inds)+kron((0:m+n:(N-1)*(m+n))',ones(1,n));
   input_inds=(1:m)';
-  input_inds=kron(ones(1,N),input_inds)+kron((0:m+n:(N-1)*(m+n))',ones(1,n));
+  input_inds=kron(ones(1,N),input_inds)+kron((0:m+n:(N-1)*(m+n))',ones(1,m));
   states=vec(x[Int.(state_inds)]);
   v=vec(x[Int.(input_inds)]);
   return states,v;
