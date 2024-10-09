@@ -24,9 +24,15 @@ where:
 
 While this implementation is specifically applied to a Water Distribution Network (WDN), the robust control method can be applied to any system that can be modeled in the above form.
 
+
 ## Files
 
 - `dfStdStruct.jl`: The standard implementation of the presented robust controller.
 - `dFEffStruct.jl`: The computationally efficient implementation of the presented robust controller.
 - `dfEFFmain.jl`: An example usage of the presented methods in a receding horizon fashion.
 - `parameters.jl`: Parameters for the WDN in the paper.
+
+## How to cite this material?
+
+https://doi.org/10.5281/zenodo.13908277
+
