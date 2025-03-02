@@ -56,6 +56,12 @@ function DFController(A, B1, B2, E, C, D, b, Y, z, N,isSoft=false,softInds=[],te
 	return obj
 end
 
+#Set the prediction horizon
+function set_N(dfC::DFController,N)
+	dfC.N=N;
+	set_Problem(dfC);
+end
+
 #Functions generating system matrices like A0,B0, etc.
 function gen_A0(dfC::DFController)
 	N=dfC.N;
@@ -484,6 +490,8 @@ function set_Problem(dfC::DFController)
 	r=dfC.r;
 	mstruct=dfC.mstruct;
 	B2=dfC.B2;
+
+	empty!(dfC.model);
 	#Initial condition x0 parameter
 	@variable(dfC.model, Px0[i = 1:n] in Parameter(i));
 	nExInp=size(B2,2);

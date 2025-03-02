@@ -64,6 +64,12 @@ function DFStdController(A, B1, B2, E, C, D, b, Y, z, N,isSoft=false,softInds=[]
     return obj
 end
 
+#Set the prediction horizon
+function set_N(dfStdC::DFStdController,N)
+	dfStdC.N=N;
+	set_Problem(dfStdC);
+end
+
 #Functions generating system matrices like A0,B0, etc.
 function gen_bigA(dfStdC::DFStdController)
     n=dfStdC.n;
@@ -164,6 +170,7 @@ end
 
 #Function to set the optimization problem.
 function set_Problem(dfStdC::DFStdController)
+    empty!(dfStdC.model);
     #Generate matrices
     gen_bigA(dfStdC);
     Eb=gen_bigE(dfStdC);

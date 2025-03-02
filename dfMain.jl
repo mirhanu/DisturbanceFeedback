@@ -57,41 +57,122 @@ end
     return inps,states;
 end
 
-#Simulation horizon
-T=2;
-costParam=WDNCostParams(sysC,sysD,elecPrice,reservoirPressures,t);
+function save_solution_time_plot(hors, times, title, filename; order=3)
+    # Compute the polynomial fit coefficients
+    coeffs = (hors.^order) \ times
+    
+    # Generate the plot
+    p = plot(hors, 
+        [times hors.^order * coeffs], 
+        xaxis=:log, yaxis=:log, 
+        label=["Measured Time" "$(order)th Order Fit"], 
+        xlabel="Horizon", ylabel="Solution Time (s)", 
+        title=title,
+        legend=:topleft
+    )
+    
+    # Save the plot
+    savefig(p, filename)
+end
 
-#Run the Disturbance Feedback MPC with Efficient Formulation
-dfController=DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N,false,[1,2,3,4],[1,2,3,4]);
-inpsEff,statesEff,distSeq=runMCSimulation(dfController,demand,t,T,x0,costParam);
+# Efficient Controller Version
+function compute_solution_times(controller::DFController, hors, demand; t=0, T=1, repeat=1)
+    solveTimes = zeros(length(hors));
 
-#Run the Disturbance Feedback MPC with Standard Formulation 
-# (The results of both simulations should be the same.)
-costParam.t=t;t;
-dfStdController=DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N,false,[1,2,3,4],[1,2,3,4]);
-inpsSTD,statesSTD=runMCSimulation(dfStdController,demand,t,T,x0,costParam,distSeq);
+    for i in 1:length(hors)
+        for j in 1:repeat
+            N = hors[i];
+            set_N(controller,N);  # Set horizon
+
+            # Run Efficient Controller simulation
+            costParam.t = t;
+            v, s, distSeq = runMCSimulation(controller, demand, t, T, x0, costParam);
+
+            # Accumulate solve time
+            solveTimes[i] += solve_time(controller.model);
+        end
+
+        # Average over repetitions
+        solveTimes[i] /= repeat;
+    end
+
+    return solveTimes
+end
+
+# Standard Controller Version
+function compute_solution_times(controller::DFStdController, hors, demand; t=0, T=1, repeat=1)
+    solveTimes = zeros(length(hors));
+
+    for i in 1:length(hors)
+        for j in 1:repeat
+            N = hors[i];
+            set_N(controller,N);  # Set horizon
+
+            # Run Standard Controller simulation
+            costParam.t = t;
+            v2, s2 = runMCSimulation(controller, demand, t, T, x0, costParam, zeros(controller.n,1));
+
+            # Accumulate solve time
+            solveTimes[i] += solve_time(controller.model);
+        end
+
+        # Average over repetitions
+        solveTimes[i] /= repeat;
+    end
+
+    return solveTimes
+end
 
 
-# Uncomment the code below to plot the computation time for both 
-# formulations as the prediction horizon varies
-# hors=[4 8 12 16 20 24 28 32 36 40 44 48 52 56 60];
-# costParam=WDNCostParams(sysC,sysD,elecPrice,reservoirPressures,t);
-# dfController=DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N,false,[1,2,3,4],[1,2,3,4]);
-# dfStdController=DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N,false,[1,2,3,4],[1,2,3,4]);
-# effTim=zeros(1,length(hors));
-# stdTim=zeros(1,length(hors));
-# T=24
-# repeat=1;
-# for i=1:length(hors)
-#     N=hors[i]
-#     for j=1:repeat
-#         costParam.t=t;
-#         v,s,distSeq=runMCSimulation(dfController,demand,t,T,x0,costParam);
-#         costParam.t=t;
-#         v2,s2=runMCSimulation(dfStdController,demand,t,T,x0,costParam,distSeq);
-#         effTim[i]+= solve_time(dfController.model);
-#         stdTim[i]+= solve_time(dfStdController.model);
-#     end
-#     effTim[i]=effTim[i]/repeat;
-#     stdTim[i]=stdTim[i]/repeat;
-# end
+# ================================================================
+# Run Monte Carlo simulations for both MPC formulations:
+# - Efficient Formulation (DFController)
+# - Standard Formulation (DFStdController)
+#
+# The results of both simulations should be identical.
+# ================================================================
+
+# Define the simulation horizon
+T = 2  
+
+# Set up cost parameters for the water distribution network
+costParam = WDNCostParams(sysC, sysD, elecPrice, reservoirPressures, t)
+
+# Run the Disturbance Feedback MPC with the Efficient Formulation
+dfController = DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N, false, [1,2,3,4], [1,2,3,4])
+inpsEff, statesEff, distSeq = runMCSimulation(dfController, demand, t, T, x0, costParam)
+
+# Run the Disturbance Feedback MPC with the Standard Formulation
+costParam.t = t  # Ensure the start time is the same as the Efficient one
+dfStdController = DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N, false, [1,2,3,4], [1,2,3,4])
+inpsSTD, statesSTD = runMCSimulation(dfStdController, demand, t, T, x0, costParam, distSeq)
+
+
+# ================================================================
+# Compute and plot the solution time for both MPC formulations 
+# as the prediction horizon varies. This helps evaluate the 
+# computational efficiency of the Efficient and Standard approaches.
+# ================================================================
+
+# # Define the range of prediction horizons to test
+# hors = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60];
+
+# # Set up cost parameters for the water distribution network
+# costParam = WDNCostParams(sysC, sysD, elecPrice, reservoirPressures, t)
+
+# # Small error bound to ensure feasibility for high prediction horizons
+# E = [1e-7 0; 0 1e-7]  
+
+# # Initialize the Efficient and Standard MPC controllers
+# dfController = DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N, false, [1,2,3,4], [1,2,3,4])
+# dfStdController = DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N, false, [1,2,3,4], [1,2,3,4])
+
+# # Compute solution times for both controllers across different horizons
+# effTim = compute_solution_times(dfController, hors, demand; repeat=1)    # Efficient Controller
+# stdTim = compute_solution_times(dfStdController, hors, demand; repeat=1) # Standard Controller
+
+# # Generate and save the solution time plot for the Efficient Implementation (Cubic Fit)
+# save_solution_time_plot(hors, effTim, "Efficient Implementation", "efficient_implementation.png"; order=3)
+
+# # Generate and save the solution time plot for the Standard Implementation (Sixth Order Fit)
+# save_solution_time_plot(hors, stdTim, "Standard Implementation", "standard_implementation.png"; order=6)
