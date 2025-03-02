@@ -1,12 +1,11 @@
 using LinearAlgebra
 using Plots
+using Distributions
 
 include("dFEffStruct.jl")
 include("utils.jl")
 include("parameters.jl")
-include("stdMPCStruct.jl")
 include("dfStdStruct.jl")
-include("periodicMPC.jl")
 
 
  function runMCSimulation(controller::DFController,demand,t,T,x0,costParam,extreme=0)
@@ -58,12 +57,41 @@ end
     return inps,states;
 end
 
-T=24;
+#Simulation horizon
+T=2;
 costParam=WDNCostParams(sysC,sysD,elecPrice,reservoirPressures,t);
 
-
+#Run the Disturbance Feedback MPC with Efficient Formulation
 dfController=DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N,false,[1,2,3,4],[1,2,3,4]);
-v,s,distSeq=runMCSimulation(dfController,demand,t,T,x0,costParam);
+inpsEff,statesEff,distSeq=runMCSimulation(dfController,demand,t,T,x0,costParam);
 
+#Run the Disturbance Feedback MPC with Standard Formulation 
+# (The results of both simulations should be the same.)
+costParam.t=t;t;
 dfStdController=DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N,false,[1,2,3,4],[1,2,3,4]);
-v2,s2=run_WStdDfController(dfStdController,demand,t,T,x0,costParam,distSeq);
+inpsSTD,statesSTD=runMCSimulation(dfStdController,demand,t,T,x0,costParam,distSeq);
+
+
+# Uncomment the code below to plot the computation time for both 
+# formulations as the prediction horizon varies
+# hors=[4 8 12 16 20 24 28 32 36 40 44 48 52 56 60];
+# costParam=WDNCostParams(sysC,sysD,elecPrice,reservoirPressures,t);
+# dfController=DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N,false,[1,2,3,4],[1,2,3,4]);
+# dfStdController=DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N,false,[1,2,3,4],[1,2,3,4]);
+# effTim=zeros(1,length(hors));
+# stdTim=zeros(1,length(hors));
+# T=24
+# repeat=1;
+# for i=1:length(hors)
+#     N=hors[i]
+#     for j=1:repeat
+#         costParam.t=t;
+#         v,s,distSeq=runMCSimulation(dfController,demand,t,T,x0,costParam);
+#         costParam.t=t;
+#         v2,s2=runMCSimulation(dfStdController,demand,t,T,x0,costParam,distSeq);
+#         effTim[i]+= solve_time(dfController.model);
+#         stdTim[i]+= solve_time(dfStdController.model);
+#     end
+#     effTim[i]=effTim[i]/repeat;
+#     stdTim[i]=stdTim[i]/repeat;
+# end

@@ -221,7 +221,6 @@ function set_Problem(dfStdC::DFStdController)
     end
     @constraint(dfStdC.model, c2, F*U+G*J .>= -λ)
     @constraint(dfStdC.model, c3, F*U+G*J .<=  λ);
-    # uConst(dfStdC,U);
 end
 
 #Function to put the slack variables in vector form.
@@ -261,15 +260,12 @@ end
 function calc_cost(dfStdC::DFStdController,states,Inps,costParams)
     N=dfStdC.N;
     n=dfStdC.n;
-    Q=sparse(I,N*n,N*n);
-    R=sparse(I,N*m,N*m);
-    cost=Inps'*R*Inps+states[n+1:(N+1)*n,1]'*Q*states[n+1:(N+1)*n,1];
-    # sysCb=kron(Matrix{Float64}(I, N, N),costParams.sysC);
-    # sysDb=kron(Matrix{Float64}(I, N, N),costParams.sysD);
-    # resPresB=kron(ones(N,1),costParams.reservoirPressures);
-    # heads=sysCb*states[1:N*n,1]+sysDb*Inps;
-    # W=kron(Diagonal(vec(get_ExInpinHorizon(N,costParams.t,costParams.elecPrice))),Matrix{Float64}(I, n, n));
-    # cost=Inps'*W*(vec(heads)-vec(resPresB));
+    sysCb=kron(Matrix{Float64}(I, N, N),costParams.sysC);
+    sysDb=kron(Matrix{Float64}(I, N, N),costParams.sysD);
+    resPresB=kron(ones(N,1),costParams.reservoirPressures);
+    heads=sysCb*states[1:N*n,1]+sysDb*Inps;
+    W=kron(Diagonal(vec(get_ExInpinHorizon(N,costParams.t,costParams.elecPrice))),Matrix{Float64}(I, n, n));
+    cost=Inps'*W*(vec(heads)-vec(resPresB));
     if dfStdC.isSoft && length(dfStdC.softInds)>0
         cost=cost+dfStdC.sc*sum(dfStdC.soft);
     end

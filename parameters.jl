@@ -31,7 +31,8 @@ elecPrice=[0.2159, 0.2148, 0.2034, 0.1957, 0.1948, 0.1988, 0.4200, 0.8963, 0.908
 sysCb=kron(Matrix{Float64}(I, N, N),sysC);
 sysDb=kron(Matrix{Float64}(I, N, N),sysD);
 Emodel=[0.054 0 ;0 0.083 ];
-Edemand=[0.039 0; 0 0.045];
+# Edemand=[0.0332 0; 0 0.0387]; #20 percent
+Edemand=[0.0332 0; 0 0.0387]/2; #10 percent
 E=Emodel+Edemand;
 
 C=[[1 0;-1 0; 0 1; 0 -1]; zeros(4,2)];
