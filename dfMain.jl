@@ -59,14 +59,15 @@ end
 
 function save_solution_time_plot(hors, times, title, filename; order=3)
     # Compute the polynomial fit coefficients
-    coeffs = (hors.^order) \ times
-    
+    hors_norm = hors / maximum(hors);
+    coeffs = (hors_norm.^order) \ times;
+
     # Generate the plot
     p = plot(hors, 
-        [times hors.^order * coeffs], 
+        [times hors_norm.^order * coeffs], 
         xaxis=:log, yaxis=:log, 
         label=["Measured Time" "$(order)th Order Fit"], 
-        xlabel="Horizon", ylabel="Solution Time (s)", 
+        xlabel="Horizon", ylabel="Per Iteration Time (s)", 
         title=title,
         legend=:topleft
     )
@@ -78,7 +79,7 @@ end
 # Efficient Controller Version
 function compute_solution_times(controller::DFController, hors, demand; t=0, T=1, repeat=1)
     solveTimes = zeros(length(hors));
-
+    perIterationTimes = zeros(length(hors));
     for i in 1:length(hors)
         for j in 1:repeat
             N = hors[i];
@@ -90,18 +91,24 @@ function compute_solution_times(controller::DFController, hors, demand; t=0, T=1
 
             # Accumulate solve time
             solveTimes[i] += solve_time(controller.model);
+            
+            #Accumulate per iteration time (Note that barrier_iterations only works for Ipopt)
+            sol_summary=solution_summary(controller.model)
+            perIterationTimes[i] += solve_time(controller.model)/sol_summary.barrier_iterations;
         end
 
         # Average over repetitions
         solveTimes[i] /= repeat;
+        perIterationTimes[i] /= repeat;
     end
 
-    return solveTimes
+    return solveTimes, perIterationTimes
 end
 
 # Standard Controller Version
 function compute_solution_times(controller::DFStdController, hors, demand; t=0, T=1, repeat=1)
     solveTimes = zeros(length(hors));
+    perIterationTimes = zeros(length(hors));
 
     for i in 1:length(hors)
         for j in 1:repeat
@@ -114,13 +121,17 @@ function compute_solution_times(controller::DFStdController, hors, demand; t=0, 
 
             # Accumulate solve time
             solveTimes[i] += solve_time(controller.model);
+
+            #Accumulate per iteration time (Note that barrier_iterations only works for Ipopt)
+            sol_summary=solution_summary(controller.model)
+            perIterationTimes[i] += solve_time(controller.model)/sol_summary.barrier_iterations;
         end
 
         # Average over repetitions
         solveTimes[i] /= repeat;
     end
 
-    return solveTimes
+    return solveTimes, perIterationTimes
 end
 
 
@@ -133,19 +144,19 @@ end
 # ================================================================
 
 # Define the simulation horizon
-T = 2  
+# T = 2  
 
-# Set up cost parameters for the water distribution network
-costParam = WDNCostParams(sysC, sysD, elecPrice, reservoirPressures, t)
+# # Set up cost parameters for the water distribution network
+# costParam = WDNCostParams(sysC, sysD, elecPrice, reservoirPressures, t)
 
-# Run the Disturbance Feedback MPC with the Efficient Formulation
-dfController = DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N, false, [1,2,3,4], [1,2,3,4])
-inpsEff, statesEff, distSeq = runMCSimulation(dfController, demand, t, T, x0, costParam)
+# # Run the Disturbance Feedback MPC with the Efficient Formulation
+# dfController = DFController(A, B1, B2[:,:], E, C, D, b, Y, z, N, false, [1,2,3,4], [1,2,3,4])
+# inpsEff, statesEff, distSeq = runMCSimulation(dfController, demand, t, T, x0, costParam)
 
-# Run the Disturbance Feedback MPC with the Standard Formulation
-costParam.t = t  # Ensure the start time is the same as the Efficient one
-dfStdController = DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N, false, [1,2,3,4], [1,2,3,4])
-inpsSTD, statesSTD = runMCSimulation(dfStdController, demand, t, T, x0, costParam, distSeq)
+# # Run the Disturbance Feedback MPC with the Standard Formulation
+# costParam.t = t  # Ensure the start time is the same as the Efficient one
+# dfStdController = DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N, false, [1,2,3,4], [1,2,3,4])
+# inpsSTD, statesSTD = runMCSimulation(dfStdController, demand, t, T, x0, costParam, distSeq)
 
 
 # ================================================================
@@ -155,7 +166,7 @@ inpsSTD, statesSTD = runMCSimulation(dfStdController, demand, t, T, x0, costPara
 # ================================================================
 
 # # Define the range of prediction horizons to test
-# hors = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60];
+# hors=[4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60];
 
 # # Set up cost parameters for the water distribution network
 # costParam = WDNCostParams(sysC, sysD, elecPrice, reservoirPressures, t)
@@ -168,11 +179,11 @@ inpsSTD, statesSTD = runMCSimulation(dfStdController, demand, t, T, x0, costPara
 # dfStdController = DFStdController(A, B1, B2[:,:], E, C, D, b[:,:], Y, z[:,:], N, false, [1,2,3,4], [1,2,3,4])
 
 # # Compute solution times for both controllers across different horizons
-# effTim = compute_solution_times(dfController, hors, demand; repeat=1)    # Efficient Controller
-# stdTim = compute_solution_times(dfStdController, hors, demand; repeat=1) # Standard Controller
+# effTim, effPerItTim = compute_solution_times(dfController, hors, demand; repeat=1)    # Efficient Controller
+# stdTim, stdPerItTim = compute_solution_times(dfStdController, hors, demand; repeat=1) # Standard Controller
 
 # # Generate and save the solution time plot for the Efficient Implementation (Cubic Fit)
-# save_solution_time_plot(hors, effTim, "Efficient Implementation", "efficient_implementation.png"; order=3)
+# save_solution_time_plot(hors, effPerItTim, "Efficient Implementation", "efficient_implementation.png"; order=3)
 
 # # Generate and save the solution time plot for the Standard Implementation (Sixth Order Fit)
-# save_solution_time_plot(hors, stdTim, "Standard Implementation", "standard_implementation.png"; order=6)
+# save_solution_time_plot(hors, stdPerItTim, "Standard Implementation", "standard_implementation.png"; order=6)

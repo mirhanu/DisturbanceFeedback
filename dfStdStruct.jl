@@ -285,6 +285,7 @@ function calc_Inp(dfStdC::DFStdController,x0,ExInp,costParams,disturbance)
     J=dfStdC.J;
 
     cost=calc_cost(dfStdC,dfStdC.states,dfStdC.v,costParams);
+    set_silent(dfStdC.model)
     set_parameter_value.(dfStdC.model[:Px0], x0);
     set_parameter_value.(dfStdC.model[:PExInp], ExInp);
 
